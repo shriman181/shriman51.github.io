@@ -1,0 +1,1584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Braxis — Luxury Authentication Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --obsidian: #080808;
+  --deep: #0f0f0f;
+  --surface: #141414;
+  --card: #1a1a1a;
+  --border: rgba(212,175,55,0.18);
+  --gold: #D4AF37;
+  --gold-light: #F0D060;
+  --gold-pale: rgba(212,175,55,0.08);
+  --platinum: #E8E8E0;
+  --smoke: #8a8a80;
+  --white: #F7F5F0;
+  --scan: #00E5CC;
+  --scan-glow: rgba(0,229,204,0.15);
+  --ff-serif: 'Cormorant Garamond', Georgia, serif;
+  --ff-sans: 'Montserrat', sans-serif;
+}
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--obsidian);
+  color: var(--white);
+  font-family: var(--ff-sans);
+  font-weight: 300;
+  overflow-x: hidden;
+  cursor: none;
+}
+
+/* Custom cursor */
+.cursor {
+  width: 10px; height: 10px;
+  background: var(--gold);
+  border-radius: 50%;
+  position: fixed; top:0; left:0;
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(-50%,-50%);
+  transition: width 0.2s, height 0.2s, background 0.2s;
+  mix-blend-mode: normal;
+}
+.cursor-ring {
+  width: 32px; height: 32px;
+  border: 1px solid rgba(212,175,55,0.5);
+  border-radius: 50%;
+  position: fixed; top:0; left:0;
+  pointer-events: none;
+  z-index: 9998;
+  transform: translate(-50%,-50%);
+  transition: all 0.12s ease;
+}
+
+/* Noise overlay */
+body::before {
+  content:'';
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.5;
+}
+
+/* NAV */
+nav {
+  position: fixed; top:0; left:0; right:0;
+  z-index: 100;
+  padding: 24px 60px;
+  display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 1px solid transparent;
+  transition: all 0.4s;
+}
+nav.scrolled {
+  background: rgba(8,8,8,0.92);
+  border-bottom-color: var(--border);
+  backdrop-filter: blur(12px);
+  padding: 16px 60px;
+}
+.nav-logo {
+  font-family: var(--ff-serif);
+  font-size: 28px;
+  font-weight: 300;
+  letter-spacing: 0.12em;
+  color: var(--gold);
+  text-decoration: none;
+}
+.nav-logo span { color: var(--white); }
+.nav-links {
+  display: flex; gap: 36px;
+  list-style: none;
+}
+.nav-links a {
+  color: var(--smoke);
+  text-decoration: none;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  transition: color 0.3s;
+}
+.nav-links a:hover { color: var(--gold); }
+.nav-cta {
+  background: transparent;
+  border: 1px solid var(--gold);
+  color: var(--gold);
+  font-family: var(--ff-sans);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  padding: 10px 24px;
+  cursor: none;
+  transition: all 0.3s;
+}
+.nav-cta:hover { background: var(--gold); color: var(--obsidian); }
+
+/* HERO */
+.hero {
+  min-height: 100vh;
+  display: flex; align-items: center;
+  padding: 120px 60px 80px;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-bg {
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse 60% 50% at 70% 50%, rgba(212,175,55,0.06) 0%, transparent 70%),
+              radial-gradient(ellipse 40% 60% at 20% 80%, rgba(0,229,204,0.04) 0%, transparent 60%);
+}
+
+/* Scan animation backdrop */
+.scan-lines {
+  position: absolute; right: 80px; top: 50%;
+  transform: translateY(-50%);
+  width: 380px; height: 380px;
+}
+.scan-circle {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid;
+  top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+  animation: pulse-ring 3s ease-out infinite;
+}
+.scan-circle:nth-child(1) { width:80px; height:80px; border-color: rgba(212,175,55,0.6); animation-delay:0s; }
+.scan-circle:nth-child(2) { width:160px; height:160px; border-color: rgba(212,175,55,0.35); animation-delay:0.4s; }
+.scan-circle:nth-child(3) { width:240px; height:240px; border-color: rgba(212,175,55,0.18); animation-delay:0.8s; }
+.scan-circle:nth-child(4) { width:320px; height:320px; border-color: rgba(212,175,55,0.08); animation-delay:1.2s; }
+
+@keyframes pulse-ring {
+  0% { opacity:1; transform: translate(-50%,-50%) scale(0.95); }
+  50% { opacity:0.6; }
+  100% { opacity:1; transform: translate(-50%,-50%) scale(1.05); }
+}
+
+.scan-core {
+  position: absolute; top:50%; left:50%;
+  transform: translate(-50%,-50%);
+  width: 64px; height: 64px;
+  display: flex; align-items: center; justify-content: center;
+}
+.scan-diamond {
+  width: 36px; height: 36px;
+  background: var(--gold);
+  transform: rotate(45deg);
+  animation: spin-slow 8s linear infinite;
+  position: relative;
+}
+.scan-diamond::after {
+  content:'';
+  position: absolute; inset: 6px;
+  background: var(--obsidian);
+  transform: rotate(0deg);
+}
+
+.scan-beam {
+  position: absolute; top:0; left:0; right:0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--scan), transparent);
+  animation: scan-sweep 2.5s ease-in-out infinite;
+  box-shadow: 0 0 20px var(--scan), 0 0 40px rgba(0,229,204,0.3);
+}
+@keyframes scan-sweep {
+  0%,100% { top: 15%; opacity:0.8; }
+  50% { top: 85%; opacity:1; }
+}
+
+.scan-data {
+  position: absolute;
+  font-family: var(--ff-sans);
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  color: var(--scan);
+  opacity: 0.7;
+  animation: data-flicker 4s ease-in-out infinite;
+}
+.sd1 { top: 12%; left: 5%; }
+.sd2 { top: 28%; right: 2%; }
+.sd3 { bottom: 28%; left: 2%; }
+.sd4 { bottom: 14%; right: 8%; }
+
+@keyframes data-flicker {
+  0%,100% { opacity:0.7; }
+  45% { opacity:0.3; }
+  50% { opacity:0.9; }
+  55% { opacity:0.4; }
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(45deg); }
+  to { transform: rotate(405deg); }
+}
+
+.hero-content { position:relative; z-index:2; max-width: 580px; }
+
+.hero-eyebrow {
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 24px;
+  display: flex; align-items: center; gap: 12px;
+}
+.hero-eyebrow::before {
+  content:'';
+  width: 40px; height: 1px;
+  background: var(--gold);
+}
+
+.hero-h1 {
+  font-family: var(--ff-serif);
+  font-size: clamp(52px, 6vw, 82px);
+  font-weight: 300;
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+  margin-bottom: 28px;
+}
+.hero-h1 em {
+  font-style: italic;
+  color: var(--gold);
+}
+
+.hero-sub {
+  font-size: 14px;
+  line-height: 1.8;
+  color: var(--smoke);
+  margin-bottom: 48px;
+  max-width: 440px;
+  letter-spacing: 0.02em;
+}
+
+.hero-btns { display:flex; gap:16px; align-items:center; }
+
+.btn-primary {
+  background: var(--gold);
+  color: var(--obsidian);
+  border: none;
+  font-family: var(--ff-sans);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  padding: 16px 36px;
+  cursor: none;
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
+  text-decoration: none;
+  display: inline-block;
+}
+.btn-primary::after {
+  content:'';
+  position: absolute; inset: 0;
+  background: rgba(255,255,255,0.15);
+  transform: translateX(-100%);
+  transition: transform 0.3s;
+}
+.btn-primary:hover::after { transform: translateX(0); }
+
+.btn-ghost {
+  background: transparent;
+  color: var(--platinum);
+  border: none;
+  font-family: var(--ff-sans);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  cursor: none;
+  display: flex; align-items: center; gap: 8px;
+  text-decoration: none;
+  transition: color 0.3s;
+}
+.btn-ghost:hover { color: var(--gold); }
+.btn-ghost .arrow {
+  width: 20px; height: 1px;
+  background: currentColor;
+  position: relative;
+  transition: width 0.3s;
+}
+.btn-ghost .arrow::after {
+  content:'';
+  position: absolute; right:-1px; top:-3px;
+  width:6px; height:6px;
+  border-right: 1px solid currentColor;
+  border-top: 1px solid currentColor;
+  transform: rotate(45deg);
+}
+.btn-ghost:hover .arrow { width: 32px; }
+
+.hero-stats {
+  position: absolute; bottom: 60px; left: 60px; right: 60px;
+  display: flex; gap: 60px;
+  border-top: 1px solid var(--border);
+  padding-top: 32px;
+}
+.stat-item {}
+.stat-num {
+  font-family: var(--ff-serif);
+  font-size: 36px;
+  font-weight: 300;
+  color: var(--gold);
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+.stat-label {
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--smoke);
+  margin-top: 6px;
+}
+
+/* SECTION BASE */
+section { position:relative; z-index:1; }
+
+.section-pad { padding: 100px 60px; }
+
+.section-eyebrow {
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 16px;
+  display: flex; align-items: center; gap: 12px;
+}
+.section-eyebrow::before {
+  content:'';
+  width: 30px; height: 1px;
+  background: var(--gold);
+}
+
+.section-title {
+  font-family: var(--ff-serif);
+  font-size: clamp(36px, 4vw, 56px);
+  font-weight: 300;
+  line-height: 1.1;
+  margin-bottom: 20px;
+}
+.section-title em { font-style:italic; color: var(--gold); }
+
+.section-sub {
+  font-size: 14px;
+  line-height: 1.9;
+  color: var(--smoke);
+  max-width: 520px;
+}
+
+/* PROBLEM SECTION */
+.problem {
+  background: var(--deep);
+  padding: 100px 60px;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center;
+}
+
+.problem-visual {
+  position: relative; height: 360px;
+}
+
+.market-ring {
+  position: absolute; top:50%; left:50%;
+  transform: translate(-50%,-50%);
+  border-radius: 50%;
+  border: 1px solid var(--border);
+}
+.mr1 { width:120px; height:120px; animation: rotate-cw 20s linear infinite; }
+.mr2 { width:200px; height:200px; animation: rotate-ccw 30s linear infinite; }
+.mr3 { width:290px; height:290px; animation: rotate-cw 45s linear infinite; }
+
+.market-ring::before, .market-ring::after {
+  content:'';
+  position:absolute;
+  width:6px; height:6px;
+  background: var(--gold);
+  border-radius: 50%;
+}
+.mr1::before { top:-3px; left:50%; transform:translateX(-50%); }
+.mr1::after { bottom:-3px; left:50%; transform:translateX(-50%); }
+.mr2::before { top:-3px; left:50%; transform:translateX(-50%); }
+.mr2::after { right:-3px; top:50%; transform:translateY(-50%); }
+.mr3::before { top:-3px; left:50%; transform:translateX(-50%); }
+.mr3::after { bottom:-3px; right: 20%; }
+
+@keyframes rotate-cw { from{transform:translate(-50%,-50%) rotate(0)} to{transform:translate(-50%,-50%) rotate(360deg)} }
+@keyframes rotate-ccw { from{transform:translate(-50%,-50%) rotate(0)} to{transform:translate(-50%,-50%) rotate(-360deg)} }
+
+.market-center {
+  position: absolute; top:50%; left:50%;
+  transform: translate(-50%,-50%);
+  text-align:center;
+}
+.market-center .val {
+  font-family: var(--ff-serif);
+  font-size: 48px;
+  font-weight:300;
+  color: var(--gold);
+  line-height:1;
+}
+.market-center .lbl {
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--smoke);
+  margin-top: 4px;
+}
+
+.counterfeit-bar {
+  position: absolute; bottom: 20px; left: 0; right: 0;
+  padding: 0 20px;
+}
+.cbar-label {
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--smoke);
+  margin-bottom: 8px;
+  display: flex; justify-content:space-between;
+}
+.cbar-track {
+  height: 3px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.cbar-fill {
+  height:100%;
+  background: linear-gradient(90deg, var(--gold), var(--scan));
+  border-radius: 2px;
+  animation: bar-grow 2s ease-out forwards;
+  width:0;
+}
+@keyframes bar-grow { to { width: 35%; } }
+
+.problem-points { list-style: none; margin-top: 32px; }
+.problem-points li {
+  display: flex; gap: 16px; align-items: flex-start;
+  padding: 18px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--smoke);
+}
+.problem-points li:last-child { border-bottom: none; }
+.pp-icon {
+  width: 28px; height: 28px; min-width: 28px;
+  border: 1px solid var(--gold);
+  display: flex; align-items:center; justify-content:center;
+  color: var(--gold);
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+/* WHAT WE DO */
+.what {
+  padding: 100px 60px;
+  background: var(--obsidian);
+}
+.what-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2px;
+  margin-top: 64px;
+}
+.what-card {
+  background: var(--card);
+  padding: 40px 32px;
+  border: 1px solid transparent;
+  transition: border-color 0.4s, background 0.4s;
+  position: relative;
+  overflow: hidden;
+}
+.what-card::before {
+  content:'';
+  position:absolute; top:0; left:0; right:0;
+  height:2px;
+  background: var(--gold);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.4s;
+}
+.what-card:hover { border-color: var(--border); background: #1f1f1f; }
+.what-card:hover::before { transform: scaleX(1); }
+
+.wc-icon {
+  width: 52px; height: 52px;
+  border: 1px solid var(--border);
+  display: flex; align-items:center; justify-content:center;
+  margin-bottom: 28px;
+  position:relative;
+}
+.wc-icon svg { width:22px; height:22px; stroke: var(--gold); fill:none; stroke-width:1.5; }
+
+.wc-title {
+  font-family: var(--ff-serif);
+  font-size: 22px;
+  font-weight: 400;
+  margin-bottom: 14px;
+  line-height: 1.2;
+}
+.wc-text {
+  font-size: 13px;
+  line-height: 1.8;
+  color: var(--smoke);
+}
+.wc-tag {
+  display: inline-block;
+  margin-top: 20px;
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--scan);
+  border: 1px solid rgba(0,229,204,0.25);
+  padding: 4px 10px;
+}
+
+/* CATEGORIES */
+.categories {
+  background: var(--deep);
+  padding: 100px 60px;
+}
+.cat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  margin-top: 64px;
+}
+.cat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 0;
+  overflow: hidden;
+  position: relative;
+  cursor: none;
+  transition: border-color 0.3s;
+}
+.cat-card:hover { border-color: rgba(212,175,55,0.5); }
+.cat-card:hover .cat-overlay { opacity:1; }
+.cat-card:hover .cat-img-placeholder { transform: scale(1.04); }
+
+.cat-img-placeholder {
+  width:100%; height:180px;
+  transition: transform 0.5s ease;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 64px;
+  position:relative;
+}
+.watch-bg { background: linear-gradient(135deg, #1a1507, #2a2010); }
+.art-bg   { background: linear-gradient(135deg, #0d0d1a, #1a0d2a); }
+.wine-bg  { background: linear-gradient(135deg, #1a0808, #2a0f0f); }
+.bag-bg   { background: linear-gradient(135deg, #0a1208, #0f1f0d); }
+
+.cat-overlay {
+  position:absolute; inset:0;
+  background: rgba(212,175,55,0.08);
+  opacity:0;
+  transition: opacity 0.3s;
+  display:flex; align-items:center; justify-content:center;
+}
+.cat-scan-line {
+  position:absolute; left:0; right:0; height:1px;
+  background: linear-gradient(90deg, transparent, var(--scan), transparent);
+  animation: scan-v 1.8s ease-in-out infinite;
+  box-shadow: 0 0 12px var(--scan);
+}
+@keyframes scan-v {
+  0%,100% { top:10%; opacity:0.8; }
+  50% { top:90%; opacity:1; }
+}
+
+.cat-body { padding: 24px 28px; }
+.cat-name {
+  font-family: var(--ff-serif);
+  font-size: 20px;
+  font-weight: 400;
+  margin-bottom: 8px;
+}
+.cat-desc {
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--smoke);
+}
+.cat-count {
+  margin-top: 14px;
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  color: var(--gold);
+  text-transform: uppercase;
+}
+
+/* HOW IT WORKS */
+.how {
+  padding: 100px 60px;
+  background: var(--obsidian);
+}
+.process-steps {
+  margin-top: 64px;
+  display: grid;
+  grid-template-columns: repeat(5,1fr);
+  gap: 0;
+  position: relative;
+}
+.process-steps::before {
+  content:'';
+  position:absolute;
+  top: 32px; left: 10%; right: 10%;
+  height: 1px;
+  background: linear-gradient(90deg, var(--gold), rgba(0,229,204,0.6), var(--gold));
+  z-index:0;
+}
+.step {
+  text-align:center;
+  padding: 0 20px;
+  position:relative;
+  z-index:1;
+}
+.step-num {
+  width: 64px; height: 64px;
+  border: 1px solid var(--gold);
+  border-radius: 50%;
+  display: flex; align-items:center; justify-content:center;
+  margin: 0 auto 24px;
+  background: var(--obsidian);
+  font-family: var(--ff-serif);
+  font-size: 22px;
+  color: var(--gold);
+  font-weight: 300;
+  position:relative;
+}
+.step-num::after {
+  content:'';
+  position:absolute; inset:-4px;
+  border-radius:50%;
+  border: 1px solid rgba(212,175,55,0.2);
+}
+.step-title {
+  font-family: var(--ff-serif);
+  font-size: 17px;
+  font-weight:400;
+  margin-bottom: 10px;
+}
+.step-text {
+  font-size: 12px;
+  line-height:1.7;
+  color: var(--smoke);
+}
+
+/* CERTIFICATE */
+.cert-section {
+  background: var(--deep);
+  padding: 100px 60px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  align-items: center;
+}
+
+.cert-visual {
+  position:relative;
+  display: flex; align-items:center; justify-content:center;
+}
+
+.cert-frame {
+  width: 360px;
+  background: linear-gradient(145deg, #1a1810, #141208);
+  border: 1px solid var(--gold);
+  padding: 40px 36px;
+  position:relative;
+  box-shadow: 0 0 60px rgba(212,175,55,0.08), inset 0 0 40px rgba(212,175,55,0.03);
+}
+.cert-frame::before, .cert-frame::after {
+  content:'';
+  position:absolute;
+  width:20px; height:20px;
+  border-color: var(--gold);
+  border-style: solid;
+}
+.cert-frame::before { top:8px; left:8px; border-width: 1px 0 0 1px; }
+.cert-frame::after  { bottom:8px; right:8px; border-width: 0 1px 1px 0; }
+
+.cert-inner::before, .cert-inner::after {
+  content:'';
+  position:absolute;
+  width:20px; height:20px;
+  border-color: var(--gold);
+  border-style: solid;
+}
+.cert-inner::before { top:8px; right:8px; border-width: 1px 1px 0 0; }
+.cert-inner::after  { bottom:8px; left:8px; border-width: 0 0 1px 1px; }
+
+.cert-logo {
+  text-align:center;
+  font-family: var(--ff-serif);
+  font-size: 22px;
+  letter-spacing: 0.2em;
+  color: var(--gold);
+  margin-bottom: 4px;
+}
+.cert-subtitle {
+  text-align:center;
+  font-size:8px;
+  letter-spacing:0.3em;
+  text-transform:uppercase;
+  color: var(--smoke);
+  margin-bottom: 28px;
+}
+.cert-divider {
+  height:1px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  margin: 16px 0;
+}
+.cert-item {
+  display:flex; justify-content:space-between; align-items:center;
+  margin-bottom:12px;
+}
+.ci-key { font-size:9px; letter-spacing:0.15em; text-transform:uppercase; color:var(--smoke); }
+.ci-val { font-size:12px; color:var(--platinum); font-family:var(--ff-serif); }
+.cert-seal {
+  text-align:center;
+  margin-top:24px;
+}
+.seal-ring {
+  width:70px; height:70px;
+  border-radius:50%;
+  border: 2px solid var(--gold);
+  display:flex; align-items:center; justify-content:center;
+  margin: 0 auto;
+  position:relative;
+  animation: seal-glow 3s ease-in-out infinite;
+}
+@keyframes seal-glow {
+  0%,100% { box-shadow: 0 0 0 transparent; }
+  50% { box-shadow: 0 0 20px rgba(212,175,55,0.4); }
+}
+.seal-text {
+  font-size:8px;
+  letter-spacing:0.1em;
+  text-transform:uppercase;
+  color:var(--gold);
+  text-align:center;
+  line-height:1.4;
+}
+.cert-verified {
+  margin-top:16px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  font-size:9px;
+  letter-spacing:0.2em;
+  text-transform:uppercase;
+  color:var(--scan);
+}
+.verified-dot {
+  width:6px; height:6px;
+  background:var(--scan);
+  border-radius:50%;
+  animation:blink 1.5s ease-in-out infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+/* GREY MARKET */
+.grey {
+  padding: 100px 60px;
+  background: var(--obsidian);
+}
+.grey-inner {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  align-items: start;
+}
+.threat-list { margin-top: 32px; }
+.threat-item {
+  display:flex; gap:16px;
+  padding: 20px 0;
+  border-bottom: 1px solid var(--border);
+}
+.threat-item:last-child { border-bottom:none; }
+.ti-bar {
+  width:3px; min-width:3px;
+  background: linear-gradient(to bottom, var(--gold), var(--scan));
+  border-radius:2px;
+}
+.ti-content {}
+.ti-title {
+  font-family: var(--ff-serif);
+  font-size: 17px;
+  margin-bottom: 6px;
+}
+.ti-text { font-size:13px; line-height:1.7; color:var(--smoke); }
+
+.monitor-dash {
+  background: var(--card);
+  border: 1px solid var(--border);
+  padding: 28px;
+}
+.dash-header {
+  display:flex; justify-content:space-between; align-items:center;
+  margin-bottom: 20px;
+}
+.dash-title { font-size:11px; letter-spacing:0.15em; text-transform:uppercase; color:var(--smoke); }
+.dash-live {
+  display:flex; align-items:center; gap:6px;
+  font-size:9px; letter-spacing:0.15em; text-transform:uppercase; color:var(--scan);
+}
+.live-dot { width:5px; height:5px; background:var(--scan); border-radius:50%; animation:blink 1.2s infinite; }
+.alert-row {
+  display:flex; align-items:center; gap:12px;
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  background: rgba(255,255,255,0.02);
+  border-left: 2px solid;
+  font-size:12px;
+}
+.alert-high { border-color: #e53e3e; }
+.alert-med  { border-color: var(--gold); }
+.alert-low  { border-color: var(--scan); }
+.alert-badge {
+  font-size:8px; letter-spacing:0.12em; text-transform:uppercase;
+  padding:2px 8px; border-radius:2px; min-width:40px; text-align:center;
+}
+.badge-high { background:rgba(229,62,62,0.15); color:#e53e3e; }
+.badge-med  { background:rgba(212,175,55,0.15); color:var(--gold); }
+.badge-low  { background:rgba(0,229,204,0.1); color:var(--scan); }
+.alert-text { flex:1; color:var(--smoke); line-height:1.4; }
+.alert-time { font-size:10px; color:#444; min-width:40px; text-align:right; }
+
+.dash-chart {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+.chart-label { font-size:9px; letter-spacing:0.15em; text-transform:uppercase; color:var(--smoke); margin-bottom:12px; }
+.chart-bars { display:flex; gap:4px; align-items:flex-end; height:60px; }
+.chart-bar { flex:1; border-radius:1px 1px 0 0; opacity:0.8; transition:opacity 0.3s; }
+.chart-bar:hover { opacity:1; }
+
+/* FOUNDER */
+.founder {
+  background: var(--deep);
+  padding: 100px 60px;
+}
+.founder-inner {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 80px;
+  align-items: start;
+}
+.founder-portrait {
+  position:relative;
+}
+.portrait-frame {
+  width:100%;
+  aspect-ratio: 3/4;
+  background: linear-gradient(145deg, #1a1810, #0f0d08);
+  border: 1px solid var(--border);
+  display:flex;
+  align-items:center; justify-content:center;
+  position:relative;
+  overflow:hidden;
+}
+.portrait-frame::before, .portrait-frame::after {
+  content:'';
+  position:absolute;
+  width:24px; height:24px;
+  border-color: var(--gold);
+  border-style: solid;
+}
+.portrait-frame::before { top:10px; left:10px; border-width:1px 0 0 1px; }
+.portrait-frame::after  { bottom:10px; right:10px; border-width:0 1px 1px 0; }
+
+.portrait-initials {
+  font-family: var(--ff-serif);
+  font-size: 72px;
+  font-weight: 300;
+  color: rgba(212,175,55,0.25);
+  letter-spacing: 0.05em;
+}
+.portrait-scan-line {
+  position:absolute; left:0; right:0; height:1px;
+  background: linear-gradient(90deg, transparent, rgba(0,229,204,0.4), transparent);
+  animation: scan-v 3s ease-in-out infinite;
+}
+
+.portrait-tag {
+  position:absolute; bottom:0; left:0; right:0;
+  background: linear-gradient(to top, rgba(8,8,8,0.95), transparent);
+  padding:20px 20px 16px;
+  text-align:center;
+}
+.founder-name-tag {
+  font-family: var(--ff-serif);
+  font-size: 20px;
+  color: var(--white);
+}
+.founder-role-tag {
+  font-size:9px;
+  letter-spacing:0.2em;
+  text-transform:uppercase;
+  color: var(--gold);
+  margin-top:4px;
+}
+
+.founder-bio {}
+.founder-quote {
+  font-family: var(--ff-serif);
+  font-size: 28px;
+  font-weight: 300;
+  font-style: italic;
+  line-height:1.4;
+  color: var(--platinum);
+  margin-bottom: 32px;
+  padding-left: 24px;
+  border-left: 2px solid var(--gold);
+}
+.founder-text {
+  font-size: 14px;
+  line-height: 1.9;
+  color: var(--smoke);
+  margin-bottom: 20px;
+}
+.founder-links {
+  display:flex; gap:20px;
+  margin-top:32px;
+}
+.f-link {
+  font-size:10px;
+  letter-spacing:0.2em;
+  text-transform:uppercase;
+  color: var(--gold);
+  text-decoration:none;
+  border-bottom: 1px solid rgba(212,175,55,0.3);
+  padding-bottom: 3px;
+  transition: border-color 0.3s;
+}
+.f-link:hover { border-color: var(--gold); }
+
+.founder-credentials {
+  display: grid; grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px; margin-top: 40px;
+}
+.cred-item {
+  padding: 20px;
+  border: 1px solid var(--border);
+  text-align:center;
+}
+.cred-icon { font-size:22px; margin-bottom:8px; }
+.cred-title {
+  font-size:11px;
+  font-weight:500;
+  letter-spacing:0.08em;
+  margin-bottom:4px;
+}
+.cred-sub { font-size:11px; color:var(--smoke); line-height:1.5; }
+
+/* CTA SECTION */
+.cta-section {
+  padding: 120px 60px;
+  text-align:center;
+  background: radial-gradient(ellipse 60% 60% at 50% 50%, rgba(212,175,55,0.06) 0%, transparent 70%);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+.cta-section .section-title { text-align:center; }
+.cta-section .section-sub { text-align:center; margin: 0 auto 48px; }
+.cta-btns { display:flex; gap:16px; justify-content:center; align-items:center; }
+
+/* FOOTER */
+footer {
+  background: var(--deep);
+  padding: 60px 60px 40px;
+  border-top: 1px solid var(--border);
+}
+.footer-top {
+  display: flex; justify-content:space-between; align-items:flex-start;
+  margin-bottom: 40px;
+}
+.footer-brand .nav-logo { display:block; margin-bottom:12px; }
+.footer-brand p { font-size:12px; color:var(--smoke); line-height:1.7; max-width:260px; }
+.footer-cols { display:flex; gap:60px; }
+.footer-col h4 {
+  font-size:10px; letter-spacing:0.2em; text-transform:uppercase;
+  color:var(--gold); margin-bottom:16px;
+}
+.footer-col ul { list-style:none; }
+.footer-col li { margin-bottom:10px; }
+.footer-col a { font-size:13px; color:var(--smoke); text-decoration:none; transition:color 0.3s; }
+.footer-col a:hover { color:var(--white); }
+.footer-bottom {
+  border-top: 1px solid var(--border);
+  padding-top: 24px;
+  display:flex; justify-content:space-between; align-items:center;
+}
+.footer-bottom p { font-size:11px; color:#444; }
+.footer-badge {
+  font-size:9px; letter-spacing:0.2em; text-transform:uppercase;
+  color:var(--scan); border: 1px solid rgba(0,229,204,0.2); padding:4px 12px;
+}
+
+/* SCROLL REVEAL */
+.reveal {
+  opacity:0;
+  transform: translateY(30px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+.reveal.visible {
+  opacity:1;
+  transform: translateY(0);
+}
+
+/* Responsive mobile basics */
+@media (max-width:768px) {
+  nav { padding: 20px 24px; }
+  nav.scrolled { padding: 14px 24px; }
+  .nav-links, .nav-cta { display:none; }
+  .hero { padding: 100px 24px 60px; }
+  .scan-lines { display:none; }
+  .hero-stats { left:24px; right:24px; gap:30px; flex-wrap:wrap; }
+  .problem, .cert-section, .grey-inner, .founder-inner { grid-template-columns:1fr; gap:40px; }
+  .what-grid, .cat-grid { grid-template-columns:1fr 1fr; }
+  .process-steps { grid-template-columns:1fr 1fr; }
+  .process-steps::before { display:none; }
+  .section-pad, .what, .how, .grey, .founder, .categories, .problem, .cert-section { padding: 60px 24px; }
+  .founder-credentials { grid-template-columns:1fr 1fr; }
+  .footer-top { flex-direction:column; gap:40px; }
+  .footer-cols { flex-wrap:wrap; gap:30px; }
+  .cta-section { padding:80px 24px; }
+}
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- NAV -->
+<nav id="mainNav">
+  <a href="#" class="nav-logo">BRAX<span>IS</span></a>
+  <ul class="nav-links">
+    <li><a href="#platform">Platform</a></li>
+    <li><a href="#categories">Coverage</a></li>
+    <li><a href="#how">Process</a></li>
+    <li><a href="#founder">Founder</a></li>
+  </ul>
+  <button class="nav-cta">Request Access</button>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="home">
+  <div class="hero-bg"></div>
+
+  <div class="scan-lines">
+    <div class="scan-circle"></div>
+    <div class="scan-circle"></div>
+    <div class="scan-circle"></div>
+    <div class="scan-circle"></div>
+    <div class="scan-core">
+      <div class="scan-diamond"></div>
+    </div>
+    <div class="scan-beam"></div>
+    <div class="scan-data sd1">AUTH_VERIFIED</div>
+    <div class="scan-data sd2">CHAIN: 0x4f2a</div>
+    <div class="scan-data sd3">SCORE: 99.7%</div>
+    <div class="scan-data sd4">CERT ISSUED</div>
+  </div>
+
+  <div class="hero-content">
+    <div class="hero-eyebrow">Luxury Authentication Intelligence</div>
+    <h1 class="hero-h1">
+      The truth<br>behind every<br><em>luxury object.</em>
+    </h1>
+    <p class="hero-sub">Braxis deploys AI-powered provenance verification, image authentication, and automated certification for the $400B luxury resale market — watches, art, wine, and handbags.</p>
+    <div class="hero-btns">
+      <a href="#platform" class="btn-primary">Explore Platform</a>
+      <a href="#how" class="btn-ghost">See how it works <span class="arrow"></span></a>
+    </div>
+  </div>
+
+  <div class="hero-stats">
+    <div class="stat-item">
+      <div class="stat-num">$400B</div>
+      <div class="stat-label">Luxury Resale Market</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">35%</div>
+      <div class="stat-label">Counterfeit Rate</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">99.7%</div>
+      <div class="stat-label">Auth Accuracy</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">&lt;4s</div>
+      <div class="stat-label">Time to Certificate</div>
+    </div>
+  </div>
+</section>
+
+<!-- PROBLEM -->
+<section class="problem reveal" id="problem">
+  <div class="problem-visual">
+    <div class="market-ring mr1"></div>
+    <div class="market-ring mr2"></div>
+    <div class="market-ring mr3"></div>
+    <div class="market-center">
+      <div class="val">$400B</div>
+      <div class="lbl">Market Size</div>
+    </div>
+    <div class="counterfeit-bar">
+      <div class="cbar-label"><span>Counterfeit penetration</span><span>~35%</span></div>
+      <div class="cbar-track"><div class="cbar-fill"></div></div>
+    </div>
+  </div>
+  <div class="problem-text">
+    <div class="section-eyebrow">The Problem</div>
+    <h2 class="section-title">A $140B <em>counterfeiting</em> crisis with no scalable answer</h2>
+    <p class="section-sub">The luxury resale market is exploding — and so is the fraud. Existing authentication is slow, expensive, subjective, and human-dependent. There is no infrastructure built for scale.</p>
+    <ul class="problem-points">
+      <li>
+        <div class="pp-icon">✕</div>
+        <span>Manual expert appraisals cost $300–$2,000 per item and take days or weeks — unworkable at marketplace velocity.</span>
+      </li>
+      <li>
+        <div class="pp-icon">✕</div>
+        <span>Grey market diversion strips brands of pricing power and floods resale channels with untraceable inventory.</span>
+      </li>
+      <li>
+        <div class="pp-icon">✕</div>
+        <span>Buyers bear 100% of counterfeit risk with zero recourse — destroying trust in the entire secondary market ecosystem.</span>
+      </li>
+      <li>
+        <div class="pp-icon">✕</div>
+        <span>Provenance data is siloed, paper-based, and easily forged. No single source of truth exists for ownership history.</span>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<!-- WHAT WE DO -->
+<section class="what reveal" id="platform">
+  <div class="section-eyebrow">The Platform</div>
+  <h2 class="section-title">Authentication as <em>infrastructure</em></h2>
+  <p class="section-sub">Four interlocking capabilities that turn luxury authentication from an art into a science.</p>
+
+  <div class="what-grid">
+    <div class="what-card">
+      <div class="wc-icon">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35M11 8v3m0 0v3m0-3h3m-3 0H8"/></svg>
+      </div>
+      <div class="wc-title">Image + Provenance Verification</div>
+      <div class="wc-text">Multi-modal AI cross-references high-resolution imagery with provenance records, serial databases, and historical auction data in real time.</div>
+      <div class="wc-tag">Vision AI · NLP · Graph Analysis</div>
+    </div>
+    <div class="what-card">
+      <div class="wc-icon">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 9h6M9 12h6M9 15h4"/></svg>
+      </div>
+      <div class="wc-title">Automated Certificate of Authenticity</div>
+      <div class="wc-text">Cryptographically signed, tamper-proof digital CoA generated in under 4 seconds. Verifiable by any party, anywhere, permanently on-chain.</div>
+      <div class="wc-tag">Digital Provenance · PKI · Blockchain</div>
+    </div>
+    <div class="what-card">
+      <div class="wc-icon">
+        <svg viewBox="0 0 24 24"><path d="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z"/></svg>
+      </div>
+      <div class="wc-title">Grey Market Monitoring</div>
+      <div class="wc-text">Continuous surveillance across secondary marketplaces, social commerce, and auction platforms flags unauthorized listings and diversion patterns as they emerge.</div>
+      <div class="wc-tag">Real-time · Brand Protection</div>
+    </div>
+    <div class="what-card">
+      <div class="wc-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 21 12 17.77 5.82 21 7 14.14 2 9.27l6.91-1.01z"/></svg>
+      </div>
+      <div class="wc-title">Provenance Chain Intelligence</div>
+      <div class="wc-text">End-to-end ownership tracing from manufacturer to current holder. Every transfer, service record, and custody event in one immutable timeline.</div>
+      <div class="wc-tag">Chain of Custody · Immutable Records</div>
+    </div>
+  </div>
+</section>
+
+<!-- CATEGORIES -->
+<section class="categories reveal" id="categories">
+  <div class="section-eyebrow">Coverage</div>
+  <h2 class="section-title">Four categories. <em>One standard.</em></h2>
+  <p class="section-sub">Braxis authentication intelligence spans the highest-value and most-counterfeited categories in the global luxury resale market.</p>
+
+  <div class="cat-grid">
+    <div class="cat-card">
+      <div class="cat-img-placeholder watch-bg">
+        🕰
+        <div class="cat-overlay"><div class="cat-scan-line"></div></div>
+      </div>
+      <div class="cat-body">
+        <div class="cat-name">Timepieces</div>
+        <div class="cat-desc">Movement analysis, case hallmark verification, serial cross-referencing against manufacturer records and grey-market watchlists.</div>
+        <div class="cat-count">Rolex · Patek · AP · IWC · +200 brands</div>
+      </div>
+    </div>
+    <div class="cat-card">
+      <div class="cat-img-placeholder art-bg">
+        🎨
+        <div class="cat-overlay"><div class="cat-scan-line"></div></div>
+      </div>
+      <div class="cat-body">
+        <div class="cat-name">Fine Art</div>
+        <div class="cat-desc">Pigment analysis, brushstroke pattern matching, exhibition history tracing, and auction provenance reconciliation.</div>
+        <div class="cat-count">Paintings · Prints · Sculpture · Photography</div>
+      </div>
+    </div>
+    <div class="cat-card">
+      <div class="cat-img-placeholder wine-bg">
+        🍷
+        <div class="cat-overlay"><div class="cat-scan-line"></div></div>
+      </div>
+      <div class="cat-body">
+        <div class="cat-name">Fine Wine & Spirits</div>
+        <div class="cat-desc">Label verification, capsule authentication, cellar record tracing, and secondary market diversion detection across 500+ appellations.</div>
+        <div class="cat-count">Bordeaux · Burgundy · Whisky · Champagne</div>
+      </div>
+    </div>
+    <div class="cat-card">
+      <div class="cat-img-placeholder bag-bg">
+        👜
+        <div class="cat-overlay"><div class="cat-scan-line"></div></div>
+      </div>
+      <div class="cat-body">
+        <div class="cat-name">Luxury Handbags</div>
+        <div class="cat-desc">Hardware, stitching, leather grain, and date code analysis against factory spec databases. Spot authentication at resale velocity.</div>
+        <div class="cat-count">Hermès · Chanel · LV · Prada · +150 brands</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how reveal" id="how">
+  <div class="section-eyebrow">How It Works</div>
+  <h2 class="section-title">From submission to <em>certified truth</em> in seconds</h2>
+
+  <div class="process-steps">
+    <div class="step">
+      <div class="step-num">I</div>
+      <div class="step-title">Submit Item</div>
+      <div class="step-text">Upload high-resolution images and available provenance documents via API or web portal.</div>
+    </div>
+    <div class="step">
+      <div class="step-num">II</div>
+      <div class="step-title">AI Vision Scan</div>
+      <div class="step-text">Multi-model ensemble analyzes visual markers, micro-details, and material signatures at scale.</div>
+    </div>
+    <div class="step">
+      <div class="step-num">III</div>
+      <div class="step-title">Provenance Match</div>
+      <div class="step-text">Cross-reference against manufacturer records, auction history, and ownership chains in our global database.</div>
+    </div>
+    <div class="step">
+      <div class="step-num">IV</div>
+      <div class="step-title">Threat Scoring</div>
+      <div class="step-text">Grey market risk, counterfeit probability, and provenance confidence scored with full reasoning transparency.</div>
+    </div>
+    <div class="step">
+      <div class="step-num">V</div>
+      <div class="step-title">CoA Issued</div>
+      <div class="step-text">Cryptographically signed Certificate of Authenticity delivered. Verifiable forever. Transferable on resale.</div>
+    </div>
+  </div>
+</section>
+
+<!-- CERTIFICATE SECTION -->
+<section class="cert-section reveal">
+  <div class="cert-visual">
+    <div class="cert-frame cert-inner">
+      <div class="cert-logo">BRAXIS</div>
+      <div class="cert-subtitle">Certificate of Authenticity</div>
+      <div class="cert-divider"></div>
+
+      <div class="cert-item"><span class="ci-key">Item</span><span class="ci-val">Rolex Daytona Ref. 116500</span></div>
+      <div class="cert-item"><span class="ci-key">Serial</span><span class="ci-val">V382••••</span></div>
+      <div class="cert-item"><span class="ci-key">Year</span><span class="ci-val">2019</span></div>
+      <div class="cert-item"><span class="ci-key">Auth Score</span><span class="ci-val" style="color:var(--scan)">99.7%</span></div>
+      <div class="cert-item"><span class="ci-key">Grey Market Risk</span><span class="ci-val" style="color:#4ade80">CLEAR</span></div>
+
+      <div class="cert-divider"></div>
+
+      <div class="cert-seal">
+        <div class="seal-ring">
+          <div class="seal-text">BRAXIS<br>VERIFIED</div>
+        </div>
+      </div>
+      <div class="cert-verified">
+        <div class="verified-dot"></div>
+        Blockchain Confirmed · 0x4F2A...C831
+      </div>
+    </div>
+  </div>
+  <div>
+    <div class="section-eyebrow">Certification</div>
+    <h2 class="section-title">The certificate that <em>travels with the piece</em></h2>
+    <p class="section-sub">Every Braxis CoA is cryptographically signed, publicly verifiable, and permanently recorded. It transfers with the item through every future resale — eliminating authentication cost from every subsequent transaction in the object's lifetime.</p>
+    <div style="margin-top:36px;">
+      <div class="cert-item" style="margin-bottom:16px; padding:0;">
+        <span class="ci-key" style="font-size:11px;">Issued in</span>
+        <span class="ci-val">&lt; 4 seconds</span>
+      </div>
+      <div class="cert-item" style="margin-bottom:16px; padding:0;">
+        <span class="ci-key" style="font-size:11px;">Validity</span>
+        <span class="ci-val">Permanent</span>
+      </div>
+      <div class="cert-item" style="padding:0;">
+        <span class="ci-key" style="font-size:11px;">Verification</span>
+        <span class="ci-val">Public, instant, free</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- GREY MARKET -->
+<section class="grey reveal" id="monitoring">
+  <div class="grey-inner">
+    <div>
+      <div class="section-eyebrow">Grey Market Intelligence</div>
+      <h2 class="section-title">Seeing what brands <em>cannot see</em></h2>
+      <p class="section-sub">Grey market diversion costs luxury brands billions annually in pricing power erosion. Braxis monitors the open web continuously so brands can act before the damage compounds.</p>
+      <div class="threat-list">
+        <div class="threat-item">
+          <div class="ti-bar"></div>
+          <div class="ti-content">
+            <div class="ti-title">Parallel Import Detection</div>
+            <div class="ti-text">Flag items sold outside authorized distribution channels using serial-level tracking across 200+ global resale platforms.</div>
+          </div>
+        </div>
+        <div class="threat-item">
+          <div class="ti-bar"></div>
+          <div class="ti-content">
+            <div class="ti-title">Price Integrity Monitoring</div>
+            <div class="ti-text">Identify unauthorized discounting patterns that signal diversion activity before they cascade through the market.</div>
+          </div>
+        </div>
+        <div class="threat-item">
+          <div class="ti-bar"></div>
+          <div class="ti-content">
+            <div class="ti-title">Listing Takedown Intelligence</div>
+            <div class="ti-text">Automated evidence packages for brand enforcement teams — ready to submit, admissible, timestamped.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="monitor-dash">
+        <div class="dash-header">
+          <div class="dash-title">Live Threat Monitor</div>
+          <div class="dash-live"><div class="live-dot"></div> Live</div>
+        </div>
+        <div class="alert-row alert-high">
+          <div class="alert-badge badge-high">HIGH</div>
+          <div class="alert-text">Unauthorized Hermès Birkin listing detected — eBay SG</div>
+          <div class="alert-time">2m ago</div>
+        </div>
+        <div class="alert-row alert-med">
+          <div class="alert-badge badge-med">MED</div>
+          <div class="alert-text">Rolex grey market cluster — 14 serials, HK distributor</div>
+          <div class="alert-time">11m ago</div>
+        </div>
+        <div class="alert-row alert-low">
+          <div class="alert-badge badge-low">INFO</div>
+          <div class="alert-text">Pétrus 2015 provenance gap resolved — CoA reissued</div>
+          <div class="alert-time">34m ago</div>
+        </div>
+        <div class="alert-row alert-high">
+          <div class="alert-badge badge-high">HIGH</div>
+          <div class="alert-text">Chanel Classic Flap counterfeit — seized, report filed</div>
+          <div class="alert-time">1h ago</div>
+        </div>
+        <div class="dash-chart">
+          <div class="chart-label">Detections — Last 7 Days</div>
+          <div class="chart-bars" id="chartBars">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOUNDER SECTION -->
+<section class="founder reveal" id="founder">
+  <div class="section-eyebrow">The Founder</div>
+
+  <div class="founder-inner">
+    <div class="founder-portrait">
+      <div class="portrait-frame">
+        <div class="portrait-initials">BPS</div>
+        <div class="portrait-scan-line"></div>
+        <div class="portrait-tag">
+          <div class="founder-name-tag">Besta Prem Sai</div>
+          <div class="founder-role-tag">Founder & CEO, Braxis</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="founder-bio">
+      <div class="founder-quote">"Authenticity is not a feature — it is the foundation on which the entire value of luxury is built."</div>
+      <p class="founder-text">Besta Prem Sai founded Braxis from a conviction that the luxury market's counterfeiting crisis was fundamentally an infrastructure problem — not an appraisal problem. Where incumbents deployed more experts, Braxis deploys AI that scales.</p>
+      <p class="founder-text">With a background at the intersection of computer vision, marketplace trust, and luxury goods economics, Besta spent years mapping the authentication supply chain's failure points before building the system that closes them — permanently.</p>
+      <p class="founder-text">Braxis is the culmination of that research: a provenance intelligence layer that makes trust in the secondary luxury market programmable, instant, and permanent.</p>
+
+      <div class="founder-credentials">
+        <div class="cred-item">
+          <div class="cred-icon">🔬</div>
+          <div class="cred-title">Deep Tech</div>
+          <div class="cred-sub">Computer vision & multi-modal AI at the material object level</div>
+        </div>
+        <div class="cred-item">
+          <div class="cred-icon">💎</div>
+          <div class="cred-title">Luxury Domain</div>
+          <div class="cred-sub">Years of market research across watches, art, wine & fashion</div>
+        </div>
+        <div class="cred-item">
+          <div class="cred-icon">⛓</div>
+          <div class="cred-title">Provenance Systems</div>
+          <div class="cred-sub">Cryptographic certification & immutable record architecture</div>
+        </div>
+      </div>
+
+      <div class="founder-links">
+        <a href="#" class="f-link">Connect on LinkedIn</a>
+        <a href="#" class="f-link">Contact Founder</a>
+        <a href="#" class="f-link">Press Inquiries</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section reveal">
+  <div class="section-eyebrow" style="justify-content:center; margin-bottom:20px;">Early Access</div>
+  <h2 class="section-title">The authentication layer<br><em>the market has been waiting for</em></h2>
+  <p class="section-sub">Braxis is onboarding select marketplace partners, luxury brands, and institutional buyers. Join the waitlist and be first to deploy provenance intelligence at scale.</p>
+  <div class="cta-btns">
+    <a href="#" class="btn-primary">Request Early Access</a>
+    <a href="#" class="btn-ghost">View API Documentation <span class="arrow"></span></a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-top">
+    <div class="footer-brand">
+      <a href="#" class="nav-logo">BRAX<span style="color:var(--white)">IS</span></a>
+      <p>Luxury authentication intelligence. Provenance, verified. Trust, scaled.</p>
+    </div>
+    <div class="footer-cols">
+      <div class="footer-col">
+        <h4>Platform</h4>
+        <ul>
+          <li><a href="#">Authentication API</a></li>
+          <li><a href="#">Provenance Chain</a></li>
+          <li><a href="#">CoA System</a></li>
+          <li><a href="#">Grey Market Monitor</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Coverage</h4>
+        <ul>
+          <li><a href="#">Timepieces</a></li>
+          <li><a href="#">Fine Art</a></li>
+          <li><a href="#">Wine & Spirits</a></li>
+          <li><a href="#">Handbags</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Company</h4>
+        <ul>
+          <li><a href="#">About Braxis</a></li>
+          <li><a href="#">Founder</a></li>
+          <li><a href="#">Careers</a></li>
+          <li><a href="#">Contact</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>© 2025 Braxis Technologies. All rights reserved.</p>
+    <div class="footer-badge">Authentication Intelligence</div>
+  </div>
+</footer>
+
+<script>
+// Cursor
+const cursor = document.getElementById('cursor');
+const ring = document.getElementById('cursorRing');
+let mx = 0, my = 0, rx = 0, ry = 0;
+document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+function animateCursor() {
+  cursor.style.left = mx + 'px';
+  cursor.style.top = my + 'px';
+  rx += (mx - rx) * 0.15;
+  ry += (my - ry) * 0.15;
+  ring.style.left = rx + 'px';
+  ring.style.top = ry + 'px';
+  requestAnimationFrame(animateCursor);
+}
+animateCursor();
+document.querySelectorAll('a,button').forEach(el => {
+  el.addEventListener('mouseenter', () => { cursor.style.width='16px'; cursor.style.height='16px'; ring.style.width='48px'; ring.style.height='48px'; });
+  el.addEventListener('mouseleave', () => { cursor.style.width='10px'; cursor.style.height='10px'; ring.style.width='32px'; ring.style.height='32px'; });
+});
+
+// Nav scroll
+const nav = document.getElementById('mainNav');
+window.addEventListener('scroll', () => { nav.classList.toggle('scrolled', window.scrollY > 40); });
+
+// Scroll reveal
+const reveals = document.querySelectorAll('.reveal');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => { if(e.isIntersecting) { e.target.classList.add('visible'); } });
+}, { threshold: 0.12 });
+reveals.forEach(r => observer.observe(r));
+
+// Chart bars
+const heights = [30,45,28,60,42,75,55];
+const colors  = ['#D4AF37','#D4AF37','#10B981','#D4AF37','#e53e3e','#D4AF37','#00E5CC'];
+const container = document.getElementById('chartBars');
+heights.forEach((h,i) => {
+  const bar = document.createElement('div');
+  bar.className = 'chart-bar';
+  bar.style.height = h + 'px';
+  bar.style.background = colors[i];
+  bar.style.borderRadius = '1px 1px 0 0';
+  container.appendChild(bar);
+});
+
+// Stat number animation
+function animateCount(el, target, suffix='') {
+  let current = 0;
+  const step = target / 60;
+  const interval = setInterval(() => {
+    current = Math.min(current + step, target);
+    el.textContent = (suffix === 'B' || suffix === 'B+') ? '$' + current.toFixed(0) + suffix
+      : suffix === '%' ? current.toFixed(0) + '%'
+      : current.toFixed(0) + suffix;
+    if(current >= target) clearInterval(interval);
+  }, 16);
+}
+const heroStats = document.querySelectorAll('.stat-num');
+const statsObserver = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if(e.isIntersecting) {
+      const el = e.target;
+      const text = el.textContent;
+      statsObserver.unobserve(el);
+    }
+  });
+}, { threshold: 0.5 });
+heroStats.forEach(s => statsObserver.observe(s));
+</script>
+</body>
+</html>
